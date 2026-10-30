@@ -21,7 +21,7 @@ limited user can't see what you run elsewhere as administrator.
 ./release.ps1
 ```
 
-Produces a single `LimitedLauncher.exe` in `publish/` (git-ignored).
+Produces `LimitedLauncher.exe` and `LimitedLauncher.zip` in `publish/` (git-ignored).
 Needs the .NET 10 Desktop runtime to run.
 
 The app asks for administrator rights on start - needed to create users and change folder permissions.

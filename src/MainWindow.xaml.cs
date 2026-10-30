@@ -12,6 +12,7 @@ public partial class MainWindow : Window
     private const string DefaultUserName = "Limited";
 
     private readonly Config _cfg = Store.Load();
+    private bool _passwordAutoFilled;
 
     public MainWindow()
     {
@@ -86,6 +87,9 @@ public partial class MainWindow : Window
         using var proc = Launcher.Run(exe, ArgsBox.Text, workDir, user, password);
         Log($"Started '{Path.GetFileName(exe)}' as '{user}' (pid {proc.Id}).");
 
+        // The launch worked, so this password is right - remember it for next time.
+        if (!_cfg.Users.TryGetValue(user, out var known) || Store.Unprotect(known) != password)
+            _cfg.Users[user] = Store.Protect(password);
         _cfg.Default = user;
         SaveSettings();
     });
@@ -106,10 +110,14 @@ public partial class MainWindow : Window
         if (_cfg.Users.TryGetValue(name, out var blob) && Store.Unprotect(blob) is { } saved)
         {
             PasswordBox.Text = saved;
+            _passwordAutoFilled = true;
             PasswordHint.Text = "Saved password for this user is shown above.";
         }
         else
         {
+            // Don't leave the previous user's saved password sitting in the box.
+            if (_passwordAutoFilled) PasswordBox.Clear();
+            _passwordAutoFilled = false;
             PasswordHint.Text = "Leave the password empty to generate one (saved encrypted for your Windows account).";
         }
     }

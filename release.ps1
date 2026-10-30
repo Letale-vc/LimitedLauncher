@@ -8,3 +8,7 @@ dotnet publish (Join-Path $root 'src') -c Release -o $out
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "Done: $(Join-Path $out 'LimitedLauncher.exe')"
+
+$zip = Join-Path $out 'LimitedLauncher.zip'
+Compress-Archive -Path (Join-Path $out 'LimitedLauncher.exe') -DestinationPath $zip -Force
+Write-Host "Done: $zip"
