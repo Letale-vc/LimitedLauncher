@@ -43,7 +43,7 @@ internal static class Launcher
         catch (Win32Exception ex)
         {
             throw new AppException($"Could not start '{full}' as '{user}': {ex.Message} (code {ex.NativeErrorCode}). " +
-                "Check the password and that the user can read the folder (tick 'Grant folder access' to fix folder permissions).");
+                "Check the password and that the user can read the folder.");
         }
     }
 }

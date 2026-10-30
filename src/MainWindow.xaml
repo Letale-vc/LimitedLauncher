@@ -1,10 +1,10 @@
 <Window x:Class="LimitedLauncher.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="LimitedLauncher" Width="620" Height="580" MinWidth="540" MinHeight="520"
+        Title="LimitedLauncher" Width="620" SizeToContent="Height" ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen" AllowDrop="True"
         ThemeMode="System"
-        Drop="Window_Drop" Closing="Window_Closing">
+        Drop="Window_Drop" Closing="Window_Closing" PreviewMouseDown="Window_PreviewMouseDown">
     <Window.Resources>
         <Style x:Key="Card" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
@@ -33,7 +33,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <TextBlock Text="LimitedLauncher" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,2" />
@@ -56,26 +56,26 @@
 
                 <TextBlock Text="Limited user" Style="{StaticResource Title}" Grid.ColumnSpan="2" />
 
-                <TextBlock Text="User" Style="{StaticResource Caption}" Grid.Row="1" />
+                <TextBlock Text="User" Style="{StaticResource Caption}" Grid.Row="1" ToolTip="Windows account the program will run under. Pick an existing one or type a new name, then press Create user." />
                 <Grid Grid.Row="1" Grid.Column="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <ComboBox x:Name="UserBox" IsEditable="True" SelectionChanged="UserBox_Changed" LostFocus="UserBox_Changed" />
-                    <Button Grid.Column="1" Content="Refresh" Click="Refresh_Click" Margin="8,0,0,0" />
+                    <ComboBox x:Name="UserBox" ToolTip="Windows account the program will run under. Pick an existing one or type a new name, then press Create user." IsEditable="True" SelectionChanged="UserBox_Changed" LostFocus="UserBox_Changed" />
+                    <Button Grid.Column="1" ToolTip="Reload the list of local Windows users." Content="Refresh" Click="Refresh_Click" Margin="8,0,0,0" />
                 </Grid>
 
-                <TextBlock Text="Password" Style="{StaticResource Caption}" Grid.Row="2" Margin="0,10,12,0" />
-                <PasswordBox x:Name="PasswordBox" Grid.Row="2" Grid.Column="1" Margin="0,10,0,0" />
+                <TextBlock Text="Password" Style="{StaticResource Caption}" Grid.Row="2" Margin="0,10,12,0" ToolTip="Password of the limited account. Leave empty to generate one automatically." />
+                <TextBox x:Name="PasswordBox" ToolTip="Password of the limited account. Leave empty to generate one automatically." Grid.Row="2" Grid.Column="1" Margin="0,10,0,0" FontFamily="Cascadia Mono, Consolas" />
 
                 <TextBlock x:Name="PasswordHint" Grid.Row="3" Grid.Column="1" Margin="0,6,0,0" TextWrapping="Wrap"
                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="12"
                            Text="Leave the password empty to generate one (saved encrypted for your Windows account)." />
 
                 <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
-                    <Button Content="Create user" Click="Create_Click" Style="{DynamicResource AccentButtonStyle}" />
-                    <Button Content="Remove user" Click="Remove_Click" Margin="8,0,0,0" />
+                    <Button ToolTip="Create the limited local Windows account with the name and password above." Content="Create user" Click="Create_Click" Style="{DynamicResource AccentButtonStyle}" />
+                    <Button ToolTip="Delete the selected local Windows account and its saved password." Content="Remove user" Click="Remove_Click" Margin="8,0,0,0" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -93,32 +93,28 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <TextBlock Text="Application" Style="{StaticResource Title}" Grid.ColumnSpan="3" />
 
-                <TextBlock Text="Program" Style="{StaticResource Caption}" Grid.Row="1" />
-                <TextBox x:Name="ExeBox" Grid.Row="1" Grid.Column="1" ToolTip="Path to the .exe, or drop a file onto the window" />
-                <Button Content="Browse..." Click="Browse_Click" Grid.Row="1" Grid.Column="2" Margin="8,0,0,0" />
+                <TextBlock Text="Program" Style="{StaticResource Caption}" Grid.Row="1" ToolTip="Path to the .exe to launch, or drop a file onto the window." />
+                <TextBox x:Name="ExeBox" Grid.Row="1" Grid.Column="1" ToolTip="Path to the .exe to launch, or drop a file onto the window." />
+                <Button ToolTip="Choose the program file." Content="Browse..." Click="Browse_Click" Grid.Row="1" Grid.Column="2" Margin="8,0,0,0" />
 
-                <TextBlock Text="Arguments" Style="{StaticResource Caption}" Grid.Row="2" Margin="0,10,12,0" />
-                <TextBox x:Name="ArgsBox" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,10,0,0" />
+                <TextBlock Text="Arguments" Style="{StaticResource Caption}" Grid.Row="2" Margin="0,10,12,0" ToolTip="Optional command-line arguments passed to the program." />
+                <TextBox x:Name="ArgsBox" ToolTip="Optional command-line arguments passed to the program." Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,10,0,0" />
 
-                <TextBlock Text="Work dir" Style="{StaticResource Caption}" Grid.Row="3" Margin="0,10,12,0" />
+                <TextBlock Text="Work dir" Style="{StaticResource Caption}" Grid.Row="3" Margin="0,10,12,0" ToolTip="Working directory of the program (the folder it treats as current, where relative paths are resolved). Optional - defaults to the program folder." />
                 <TextBox x:Name="WorkDirBox" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,10,0,0"
-                         ToolTip="Optional - defaults to the program folder" />
+                         ToolTip="Working directory of the program (the folder it treats as current, where relative paths are resolved). Optional - defaults to the program folder." />
 
-                <CheckBox x:Name="GrantBox" IsChecked="True" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,12,0,0"
-                          Content="Grant the user read + execute on the program folder" />
-
-                <Button Content="Run as limited user" Click="Run_Click" Style="{DynamicResource AccentButtonStyle}"
-                        Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="0,16,0,0" Padding="20,8" />
+                <Button ToolTip="Start the program under the limited user account." Content="Run as limited user" Click="Run_Click" Style="{DynamicResource AccentButtonStyle}"
+                        Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="0,16,0,0" Padding="20,8" />
             </Grid>
         </Border>
 
         <Border Grid.Row="4" Style="{StaticResource Card}" Margin="0" Padding="4">
-            <TextBox x:Name="LogBox" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent"
+            <TextBox x:Name="LogBox" Height="120" ToolTip="Log of actions and results." IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent"
                      VerticalScrollBarVisibility="Auto" FontFamily="Cascadia Mono, Consolas" FontSize="12" />
         </Border>
     </Grid>

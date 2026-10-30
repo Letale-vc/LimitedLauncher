@@ -17,11 +17,11 @@ limited user can't see what you run elsewhere as administrator.
 
 ## Build
 
-```
-dotnet publish -c Release
+```bash
+ dotnet publish src -c Release
 ```
 
-Produces a single `LimitedLauncher.exe` in `bin/Release/net10.0-windows/win-x64/publish/`
+Produces a single `LimitedLauncher.exe` in `src/bin/Release/net10.0-windows/win-x64/publish/`
 (needs the .NET 10 Desktop runtime; set `SelfContained` to `true` in the csproj to bundle it).
 
 The app asks for administrator rights on start - needed to create users and change folder permissions.

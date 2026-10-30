@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Microsoft.Win32;
 
 namespace LimitedLauncher;
@@ -26,7 +27,7 @@ public partial class MainWindow : Window
     {
         string name = UserBox.Text.Trim();
         if (name.Length == 0) name = DefaultUserName;
-        string password = PasswordBox.Password.Length > 0 ? PasswordBox.Password : GeneratePassword();
+        string password = PasswordBox.Text.Length > 0 ? PasswordBox.Text : GeneratePassword();
 
         LocalUsers.Create(name, password);
         _cfg.Users[name] = Store.Protect(password);
@@ -34,7 +35,7 @@ public partial class MainWindow : Window
         Store.Save(_cfg);
 
         Log($"User '{name}' created.");
-        PasswordBox.Clear();
+        PasswordBox.Text = password;
         RefreshUsers(name);
     });
 
@@ -61,7 +62,7 @@ public partial class MainWindow : Window
         string user = UserBox.Text.Trim();
         if (user.Length == 0) throw new AppException("Choose or create a limited user first.");
 
-        string? password = PasswordBox.Password.Length > 0 ? PasswordBox.Password : null;
+        string? password = PasswordBox.Text.Length > 0 ? PasswordBox.Text : null;
         if (password is null)
         {
             if (!_cfg.Users.TryGetValue(user, out var blob))
@@ -70,18 +71,15 @@ public partial class MainWindow : Window
                 ?? throw new AppException("The saved password can't be decrypted. Type it in the Password box.");
         }
 
-        if (GrantBox.IsChecked == true)
+        string folder = Path.GetDirectoryName(Path.GetFullPath(exe))!;
+        try
         {
-            string folder = Path.GetDirectoryName(Path.GetFullPath(exe))!;
-            try
-            {
-                Launcher.GrantRead(user, folder);
-                Log($"Granted read+execute on '{folder}' to '{user}'.");
-            }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.Principal.IdentityNotMappedException)
-            {
-                throw new AppException($"Could not set permissions on '{folder}': {ex.Message}");
-            }
+            Launcher.GrantRead(user, folder);
+            Log($"Granted read+execute on '{folder}' to '{user}'.");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.Principal.IdentityNotMappedException)
+        {
+            throw new AppException($"Could not set permissions on '{folder}': {ex.Message}");
         }
 
         string? workDir = WorkDirBox.Text.Trim().Length > 0 ? WorkDirBox.Text.Trim() : null;
@@ -105,14 +103,36 @@ public partial class MainWindow : Window
     {
         // SelectionChanged fires before Text updates; read the selected item when there is one.
         string name = (UserBox.SelectedItem as string ?? UserBox.Text).Trim();
-        PasswordHint.Text = _cfg.Users.ContainsKey(name)
-            ? "A password is saved for this user - leave the box empty to use it."
-            : "Leave the password empty to generate one (saved encrypted for your Windows account).";
+        if (_cfg.Users.TryGetValue(name, out var blob) && Store.Unprotect(blob) is { } saved)
+        {
+            PasswordBox.Text = saved;
+            PasswordHint.Text = "Saved password for this user is shown above.";
+        }
+        else
+        {
+            PasswordHint.Text = "Leave the password empty to generate one (saved encrypted for your Windows account).";
+        }
     }
 
     private void Window_Drop(object sender, DragEventArgs e)
     {
         if (e.Data.GetData(DataFormats.FileDrop) is string[] { Length: > 0 } files) ExeBox.Text = files[0];
+    }
+
+    // A click on empty space should drop focus from whichever input has it.
+    private void Window_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        DependencyObject? root = null;
+        for (var d = e.OriginalSource as DependencyObject; d is not null;
+             d = d is System.Windows.Media.Visual ? System.Windows.Media.VisualTreeHelper.GetParent(d) : LogicalTreeHelper.GetParent(d))
+        {
+            if (d is System.Windows.Controls.Primitives.TextBoxBase or System.Windows.Controls.Primitives.Selector
+                or System.Windows.Controls.Primitives.ButtonBase or System.Windows.Controls.Primitives.ScrollBar) return;
+            root = d;
+        }
+        // A tree that doesn't end at this window is a popup (e.g. the open ComboBox list) - leave it alone.
+        if (root is not Window) return;
+        Keyboard.ClearFocus();
     }
 
     private void Window_Closing(object? sender, CancelEventArgs e) => SaveSettings();
